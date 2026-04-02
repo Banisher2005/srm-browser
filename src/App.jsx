@@ -1,4 +1,12 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { injectSRMDeskWidget } from "./injectors/srmDeskInjector";
+
+const quickApps = {
+  academia: "https://academia.srmist.edu.in",
+  gmail: "https://mail.google.com",
+  leetcode: "https://leetcode.com",
+  github: "https://github.com/Banisher2005/SRM-Desk"
+};
 
 export default function App() {
   const [url, setUrl] = useState("academia.srmist.edu.in");
@@ -7,6 +15,23 @@ export default function App() {
   );
 
   const webviewRef = useRef(null);
+
+  useEffect(() => {
+    const webview = webviewRef.current;
+    if (!webview) return;
+
+    const handleLoad = () => {
+      if (webview.getURL().includes("academia.srmist.edu.in")) {
+        injectSRMDeskWidget(webview);
+      }
+    };
+
+    webview.addEventListener("did-finish-load", handleLoad);
+
+    return () => {
+      webview.removeEventListener("did-finish-load", handleLoad);
+    };
+  }, [currentUrl]);
 
   const goToPage = () => {
     let finalUrl = url.trim();
@@ -22,73 +47,124 @@ export default function App() {
     }
 
     setCurrentUrl(finalUrl);
+    setUrl(finalUrl);
   };
 
-  const goBack = () => {
-    webviewRef.current?.goBack();
-  };
-
-  const goForward = () => {
-    webviewRef.current?.goForward();
-  };
-
-  const reloadPage = () => {
-    webviewRef.current?.reload();
+  const openQuickApp = (site) => {
+    setUrl(site);
+    setCurrentUrl(site);
   };
 
   return (
     <div style={styles.app}>
-      <div style={styles.topbar}>
-        <button style={styles.navBtn} onClick={goBack}>
-          ←
+      <div style={styles.sidebar}>
+        <button
+          style={styles.sideBtn}
+          onClick={() => openQuickApp(quickApps.academia)}
+        >
+          📚
         </button>
-
-        <button style={styles.navBtn} onClick={goForward}>
-          →
+        <button
+          style={styles.sideBtn}
+          onClick={() => openQuickApp(quickApps.gmail)}
+        >
+          📩
         </button>
-
-        <button style={styles.navBtn} onClick={reloadPage}>
-          ⟳
+        <button
+          style={styles.sideBtn}
+          onClick={() => openQuickApp(quickApps.leetcode)}
+        >
+          💻
         </button>
-
-        <input
-          style={styles.urlBar}
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && goToPage()}
-          placeholder="Search Google or enter URL"
-        />
-
-        <button style={styles.goBtn} onClick={goToPage}>
-          Go
+        <button
+          style={styles.sideBtn}
+          onClick={() => openQuickApp(quickApps.github)}
+        >
+          🐙
         </button>
       </div>
 
-      <webview
-        ref={webviewRef}
-        src={currentUrl}
-        style={styles.webview}
-      />
+      <div style={styles.main}>
+        <div style={styles.topbar}>
+          <button
+            style={styles.navBtn}
+            onClick={() => webviewRef.current?.goBack()}
+          >
+            ←
+          </button>
+          <button
+            style={styles.navBtn}
+            onClick={() => webviewRef.current?.goForward()}
+          >
+            →
+          </button>
+          <button
+            style={styles.navBtn}
+            onClick={() => webviewRef.current?.reload()}
+          >
+            ⟳
+          </button>
+
+          <input
+            style={styles.urlBar}
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && goToPage()}
+          />
+
+          <button style={styles.goBtn} onClick={goToPage}>
+            Go
+          </button>
+        </div>
+
+        <webview
+          ref={webviewRef}
+          src={currentUrl}
+          style={styles.webview}
+        />
+      </div>
     </div>
   );
 }
 
 const styles = {
   app: {
+    display: "flex",
+    height: "100vh",
     background: "#09090b",
     color: "white",
-    height: "100vh",
+    fontFamily: "Inter, sans-serif"
+  },
+  sidebar: {
+    width: "70px",
+    background: "#111113",
+    borderRight: "1px solid #27272a",
     display: "flex",
     flexDirection: "column",
-    fontFamily: "Inter, sans-serif"
+    alignItems: "center",
+    gap: "18px",
+    paddingTop: "20px"
+  },
+  sideBtn: {
+    width: "46px",
+    height: "46px",
+    borderRadius: "14px",
+    border: "none",
+    background: "#18181b",
+    color: "white",
+    fontSize: "22px",
+    cursor: "pointer"
+  },
+  main: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column"
   },
   topbar: {
     display: "flex",
     gap: "10px",
     padding: "12px",
-    borderBottom: "1px solid #27272a",
-    alignItems: "center",
-    background: "#09090b"
+    borderBottom: "1px solid #27272a"
   },
   navBtn: {
     background: "#18181b",
@@ -96,18 +172,16 @@ const styles = {
     border: "none",
     padding: "8px 12px",
     borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "16px"
+    cursor: "pointer"
   },
   urlBar: {
     flex: 1,
-    padding: "10px 14px",
+    padding: "10px",
     borderRadius: "10px",
     border: "none",
     background: "#18181b",
     color: "white",
-    outline: "none",
-    fontSize: "14px"
+    outline: "none"
   },
   goBtn: {
     background: "#7c3aed",
@@ -115,12 +189,10 @@ const styles = {
     border: "none",
     padding: "10px 16px",
     borderRadius: "10px",
-    cursor: "pointer",
-    fontWeight: "bold"
+    cursor: "pointer"
   },
   webview: {
-    width: "100%",
-    height: "100%",
-    flex: 1
+    flex: 1,
+    width: "100%"
   }
 };
