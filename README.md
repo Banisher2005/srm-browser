@@ -134,9 +134,11 @@ A simple way to describe it:
 ## Disclaimer
 
 This is an independent student-built project and is not affiliated with SRM Institute of Science and Technology.
+Use responsibly.
 
 ---
 
 ## Author
 
 **Abhinav Kumar**
+Built with caffeine, stubbornness, and a slight grudge against the default Academia UI
