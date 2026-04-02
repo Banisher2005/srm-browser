@@ -141,4 +141,5 @@ Use responsibly.
 ## Author
 
 **Abhinav Kumar**
+
 Built with caffeine, stubbornness, and a slight grudge against the default Academia UI
